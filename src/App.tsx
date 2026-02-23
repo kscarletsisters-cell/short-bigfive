@@ -84,6 +84,11 @@ export default function App() {
 
   const allAnswered = Object.keys(answers).length === QUESTIONS.length;
 
+  const nextTrivia = (e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    setTriviaIndex((prev) => (prev + 1) % TRIVIA.length);
+  };
+
   const runAnalysis = async () => {
     if (!scores) return;
     setIsAnalyzing(true);
@@ -227,57 +232,81 @@ export default function App() {
 
               {/* Analysis Trigger */}
               <div className="pt-10">
-                <button
-                  onClick={runAnalysis}
-                  disabled={!allAnswered || isAnalyzing}
-                  className={cn(
-                    "w-full py-6 rounded-2xl font-bold text-lg flex items-center justify-center gap-3 transition-all duration-300",
-                    allAnswered && !isAnalyzing
-                      ? "bg-[#1a1a1a] text-white hover:bg-black shadow-xl"
-                      : "bg-gray-200 text-gray-400 cursor-not-allowed"
-                  )}
-                >
-                  {isAnalyzing ? (
-                    <div className="flex flex-col items-center gap-4 py-4">
-                      <div className="flex flex-col items-center gap-2">
-                        <div className="flex items-center gap-3">
-                          <Loader2 className="animate-spin" />
-                          <span>分析中...</span>
-                        </div>
-                        <span className="text-sm font-normal opacity-80">（約30秒～1分かかります）</span>
+                {isAnalyzing ? (
+                  <motion.div 
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="w-full py-10 px-6 rounded-[32px] bg-[#1a1a1a] text-white shadow-2xl border border-white/10 flex flex-col items-center gap-8"
+                  >
+                    <div className="flex flex-col items-center gap-3">
+                      <div className="relative">
+                        <Loader2 className="animate-spin text-emerald-400" size={32} />
+                        <Sparkles className="absolute -top-1 -right-1 text-amber-400 animate-pulse" size={14} />
                       </div>
-                      
-                      <div className="mt-6 w-full max-w-md bg-white/10 rounded-2xl p-6 backdrop-blur-sm border border-white/10">
-                        <AnimatePresence mode="wait">
-                          <motion.div
-                            key={triviaIndex}
-                            initial={{ opacity: 0, y: 10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, y: -10 }}
-                            transition={{ duration: 0.5 }}
-                            className="text-center"
-                          >
-                            <div className="text-xs font-bold text-emerald-300 uppercase tracking-widest mb-2">
-                              Personality Trivia
-                            </div>
-                            <div className="text-sm font-bold mb-2">
-                              {TRIVIA[triviaIndex].title}
-                            </div>
-                            <div className="text-xs leading-relaxed opacity-90">
-                              {TRIVIA[triviaIndex].text}
-                            </div>
-                          </motion.div>
-                        </AnimatePresence>
+                      <div className="text-center">
+                        <span className="text-xl font-bold block mb-1">AIが分析中...</span>
+                        <span className="text-sm font-normal opacity-60">（約30秒～1分かかります）</span>
                       </div>
                     </div>
-                  ) : (
-                    <>
-                      {allAnswered ? "分析結果を表示する" : "すべての質問に答えてください"}
-                      <ChevronRight size={20} />
-                    </>
-                  )}
-                </button>
-                {error && <p className="mt-4 text-red-500 text-center text-sm">{error}</p>}
+                    
+                    <div 
+                      onClick={nextTrivia}
+                      className="w-full max-w-md bg-white/5 hover:bg-white/10 rounded-3xl p-8 backdrop-blur-md border border-white/10 cursor-pointer transition-all active:scale-[0.98] group relative overflow-hidden"
+                    >
+                      <div className="absolute top-4 right-6 text-[10px] font-bold text-emerald-400/50 uppercase tracking-widest group-hover:text-emerald-400 transition-colors">
+                        Tap to skip →
+                      </div>
+                      
+                      <AnimatePresence mode="wait">
+                        <motion.div
+                          key={triviaIndex}
+                          initial={{ opacity: 0, x: 20 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          exit={{ opacity: 0, x: -20 }}
+                          transition={{ duration: 0.4, ease: "easeOut" }}
+                          className="text-center"
+                        >
+                          <div className="text-xs font-bold text-emerald-400 uppercase tracking-[0.2em] mb-4 opacity-70">
+                            Personality Trivia
+                          </div>
+                          <div className="text-xl font-bold mb-4 text-white leading-tight">
+                            {TRIVIA[triviaIndex].title}
+                          </div>
+                          <div className="text-base leading-relaxed text-gray-300 font-medium">
+                            {TRIVIA[triviaIndex].text}
+                          </div>
+                        </motion.div>
+                      </AnimatePresence>
+                      
+                      <div className="mt-6 flex justify-center gap-1">
+                        {TRIVIA.slice(0, 8).map((_, i) => (
+                          <div 
+                            key={i} 
+                            className={cn(
+                              "h-1 rounded-full transition-all duration-500",
+                              i === triviaIndex % 8 ? "w-6 bg-emerald-400" : "w-1 bg-white/20"
+                            )}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                  </motion.div>
+                ) : (
+                  <button
+                    onClick={runAnalysis}
+                    disabled={!allAnswered}
+                    className={cn(
+                      "w-full py-6 rounded-2xl font-bold text-lg flex items-center justify-center gap-3 transition-all duration-300",
+                      allAnswered
+                        ? "bg-[#1a1a1a] text-white hover:bg-black shadow-xl hover:-translate-y-1"
+                        : "bg-gray-200 text-gray-400 cursor-not-allowed"
+                    )}
+                  >
+                    {allAnswered ? "分析結果を表示する" : "すべての質問に答えてください"}
+                    <ChevronRight size={20} />
+                  </button>
+                )}
+                {error && <p className="mt-4 text-red-500 text-center text-sm font-medium">{error}</p>}
               </div>
             </motion.div>
           ) : (
