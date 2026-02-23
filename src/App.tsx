@@ -227,10 +227,13 @@ export default function App() {
                   )}
                 >
                   {isAnalyzing ? (
-                    <>
-                      <Loader2 className="animate-spin" />
-                      AIがあなたの深層心理を分析中...
-                    </>
+                    <div className="flex flex-col items-center gap-2">
+                      <div className="flex items-center gap-3">
+                        <Loader2 className="animate-spin" />
+                        <span>分析中...</span>
+                      </div>
+                      <span className="text-sm font-normal opacity-80">（約30秒～1分かかります）</span>
+                    </div>
                   ) : (
                     <>
                       {allAnswered ? "分析結果を表示する" : "すべての質問に答えてください"}
