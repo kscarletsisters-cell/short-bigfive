@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { GoogleGenAI, Type } from "@google/genai";
 import Markdown from 'react-markdown';
 import { motion, AnimatePresence } from 'motion/react';
@@ -29,7 +29,7 @@ import {
 } from 'recharts';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
-import { QUESTIONS, TRAIT_NAMES } from './constants';
+import { QUESTIONS, TRAIT_NAMES, TRIVIA } from './constants';
 import { Scores, AnalysisResult } from './types';
 
 function cn(...inputs: ClassValue[]) {
@@ -44,6 +44,17 @@ export default function App() {
   const [analysis, setAnalysis] = useState<AnalysisResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [showResults, setShowResults] = useState(false);
+  const [triviaIndex, setTriviaIndex] = useState(0);
+
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+    if (isAnalyzing) {
+      interval = setInterval(() => {
+        setTriviaIndex((prev) => (prev + 1) % TRIVIA.length);
+      }, 5000);
+    }
+    return () => clearInterval(interval);
+  }, [isAnalyzing]);
 
   const scores = useMemo(() => {
     if (Object.keys(answers).length < 10) return null;
@@ -227,12 +238,37 @@ export default function App() {
                   )}
                 >
                   {isAnalyzing ? (
-                    <div className="flex flex-col items-center gap-2">
-                      <div className="flex items-center gap-3">
-                        <Loader2 className="animate-spin" />
-                        <span>分析中...</span>
+                    <div className="flex flex-col items-center gap-4 py-4">
+                      <div className="flex flex-col items-center gap-2">
+                        <div className="flex items-center gap-3">
+                          <Loader2 className="animate-spin" />
+                          <span>分析中...</span>
+                        </div>
+                        <span className="text-sm font-normal opacity-80">（約30秒～1分かかります）</span>
                       </div>
-                      <span className="text-sm font-normal opacity-80">（約30秒～1分かかります）</span>
+                      
+                      <div className="mt-6 w-full max-w-md bg-white/10 rounded-2xl p-6 backdrop-blur-sm border border-white/10">
+                        <AnimatePresence mode="wait">
+                          <motion.div
+                            key={triviaIndex}
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -10 }}
+                            transition={{ duration: 0.5 }}
+                            className="text-center"
+                          >
+                            <div className="text-xs font-bold text-emerald-300 uppercase tracking-widest mb-2">
+                              Personality Trivia
+                            </div>
+                            <div className="text-sm font-bold mb-2">
+                              {TRIVIA[triviaIndex].title}
+                            </div>
+                            <div className="text-xs leading-relaxed opacity-90">
+                              {TRIVIA[triviaIndex].text}
+                            </div>
+                          </motion.div>
+                        </AnimatePresence>
+                      </div>
                     </div>
                   ) : (
                     <>
