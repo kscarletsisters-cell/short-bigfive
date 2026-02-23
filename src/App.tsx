@@ -47,14 +47,14 @@ export default function App() {
   const [triviaIndex, setTriviaIndex] = useState(0);
 
   useEffect(() => {
-    let interval: NodeJS.Timeout;
-    if (isAnalyzing) {
-      interval = setInterval(() => {
-        setTriviaIndex((prev) => (prev + 1) % TRIVIA.length);
-      }, 5000);
-    }
-    return () => clearInterval(interval);
-  }, [isAnalyzing]);
+    if (!isAnalyzing) return;
+    
+    const timer = setTimeout(() => {
+      setTriviaIndex((prev) => (prev + 1) % TRIVIA.length);
+    }, 10000);
+    
+    return () => clearTimeout(timer);
+  }, [isAnalyzing, triviaIndex]);
 
   const scores = useMemo(() => {
     if (Object.keys(answers).length < 10) return null;
