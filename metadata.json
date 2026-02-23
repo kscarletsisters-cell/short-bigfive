@@ -1,0 +1,5 @@
+{
+  "name": "AIビッグファイブ性格診断",
+  "description": "10個の質問に答えるだけで、あなたの性格、適職、パートナー選びの傾向をAIが詳細に分析します。",
+  "requestFramePermissions": []
+}
